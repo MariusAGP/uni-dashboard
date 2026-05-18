@@ -10,7 +10,12 @@ from src.dto.dashboard_daten import DashboardDaten
 
 
 class DashboardView:
-    def zeige_dashboard(self, daten: DashboardDaten) -> None:
+    def zeige_dashboard(
+        self,
+        daten: DashboardDaten,
+        on_save_pruefung: Callable[[str, float, date, int], None],
+        on_save_lerneinheit: Callable[[date, float, str], None],
+    ) -> None:
         st.set_page_config(page_title="Studium Dashboard", layout="wide")
         self._zeige_header(daten)
         self.zeige_kpi_karten(daten)
@@ -26,9 +31,10 @@ class DashboardView:
             self.zeige_workload_chart(daten)
         with col_unten_rechts:
             self.zeige_offene_module(daten)
+        self._zeige_dialoge(daten, on_save_pruefung, on_save_lerneinheit)
 
     def _zeige_header(self, daten: DashboardDaten) -> None:
-        col_titel, col_info = st.columns([3, 1])
+        col_titel, col_info, col_buttons = st.columns([3, 1, 1])
         with col_titel:
             st.title("Studium Dashboard")
             st.caption(f"{daten.studiengang_name}")
@@ -44,6 +50,11 @@ class DashboardView:
                 st.warning("Zeitplan prüfen")
             else:
                 st.error("Zeitplan kritisch")
+        with col_buttons:
+            if st.button("Prüfung eintragen", use_container_width=True):
+                st.session_state["dialog_pruefung"] = True
+            if st.button("Lerneinheit eintragen", use_container_width=True):
+                st.session_state["dialog_lerneinheit"] = True
 
     def zeige_kpi_karten(self, daten: DashboardDaten) -> None:
         k1, k2, k3, k4 = st.columns(4)
@@ -142,43 +153,43 @@ class DashboardView:
                 f"*(Semester {modul.semester_nummer})*"
             )
 
-    def zeige_eingabe_sidebar(
+    def _zeige_dialoge(
         self,
         daten: DashboardDaten,
         on_save_pruefung: Callable[[str, float, date, int], None],
         on_save_lerneinheit: Callable[[date, float, str], None],
     ) -> None:
-        with st.sidebar:
-            st.header("Eingabe")
+        @st.dialog("Prüfung eintragen")
+        def pruefung_dialog() -> None:
+            modul_namen = [m.name for m in daten.offene_module]
+            if not modul_namen:
+                st.info("Alle Module bestanden.")
+                return
+            with st.form("pruefung_form"):
+                modul = st.selectbox("Modul", modul_namen)
+                note = st.selectbox(
+                    "Note",
+                    [1.0, 1.3, 1.7, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0, 5.0],
+                )
+                pruef_datum = st.date_input("Prüfungsdatum", value=date.today())
+                versuch = st.number_input("Versuch", min_value=1, max_value=3, value=1, step=1)
+                if st.form_submit_button("Speichern", use_container_width=True):
+                    on_save_pruefung(modul, float(note), pruef_datum, int(versuch))
+                    st.rerun()
 
-            with st.expander("Prüfung eintragen", expanded=True):
-                modul_namen = [m.name for m in daten.offene_module]
-                if not modul_namen:
-                    st.info("Alle Module bestanden.")
-                else:
-                    with st.form("pruefung_form"):
-                        modul = st.selectbox("Modul", modul_namen)
-                        note = st.selectbox(
-                            "Note",
-                            [1.0, 1.3, 1.7, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0, 5.0],
-                        )
-                        pruef_datum = st.date_input("Prüfungsdatum", value=date.today())
-                        versuch = st.number_input("Versuch", min_value=1, max_value=3, value=1, step=1)
-                        submitted = st.form_submit_button("Speichern")
-                        if submitted:
-                            on_save_pruefung(modul, float(note), pruef_datum, int(versuch))
-                            st.success(f'Note {note} für "{modul}" gespeichert.')
-                            st.rerun()
+        @st.dialog("Lerneinheit eintragen")
+        def lerneinheit_dialog() -> None:
+            with st.form("lerneinheit_form"):
+                lern_datum = st.date_input("Datum", value=date.today())
+                stunden = st.number_input(
+                    "Stunden", min_value=0.5, max_value=12.0, value=2.0, step=0.5
+                )
+                notiz = st.text_input("Notiz (optional)", value="")
+                if st.form_submit_button("Speichern", use_container_width=True):
+                    on_save_lerneinheit(lern_datum, float(stunden), notiz)
+                    st.rerun()
 
-            with st.expander("Lerneinheit eintragen", expanded=False):
-                with st.form("lerneinheit_form"):
-                    lern_datum = st.date_input("Datum", value=date.today(), key="lern_datum")
-                    stunden = st.number_input(
-                        "Stunden", min_value=0.5, max_value=12.0, value=2.0, step=0.5
-                    )
-                    notiz = st.text_input("Notiz (optional)", value="")
-                    submitted = st.form_submit_button("Speichern")
-                    if submitted:
-                        on_save_lerneinheit(lern_datum, float(stunden), notiz)
-                        st.success(f"{stunden} h am {lern_datum} gespeichert.")
-                        st.rerun()
+        if st.session_state.pop("dialog_pruefung", False):
+            pruefung_dialog()
+        if st.session_state.pop("dialog_lerneinheit", False):
+            lerneinheit_dialog()

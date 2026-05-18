@@ -22,8 +22,7 @@ class DashboardApp:
         )
         daten = controller.lade_dashboard_daten()
         view = DashboardView()
-        view.zeige_dashboard(daten)
-        view.zeige_eingabe_sidebar(
+        view.zeige_dashboard(
             daten=daten,
             on_save_pruefung=controller.speichere_pruefung,
             on_save_lerneinheit=controller.speichere_lerneinheit,
