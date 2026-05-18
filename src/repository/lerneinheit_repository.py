@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from src.domain.lerneinheit import Lerneinheit
+from src.repository import queries
 from src.util.date_utils import parse_date
 
 
@@ -21,15 +22,8 @@ class LerneinheitRepository:
 
     def _init_db(self) -> None:
         with self._conn() as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS lerneinheit (
-                    id INTEGER PRIMARY KEY,
-                    datum TEXT NOT NULL,
-                    stunden REAL NOT NULL,
-                    notiz TEXT NOT NULL DEFAULT ''
-                )
-            """)
-            exists = conn.execute("SELECT COUNT(*) FROM lerneinheit").fetchone()[0]
+            conn.execute(queries.CREATE_LERNEINHEIT_SCHEMA)
+            exists = conn.execute(queries.ZAEHLE_LERNEINHEITEN).fetchone()[0]
             if not exists:
                 self._insert_beispieldaten(conn)
 
@@ -58,16 +52,11 @@ class LerneinheitRepository:
                 ]
                 eintraege.append((tag.isoformat(), stunden, notizen[i]))
 
-        conn.executemany(
-            "INSERT INTO lerneinheit (datum, stunden, notiz) VALUES (?, ?, ?)",
-            eintraege,
-        )
+        conn.executemany(queries.INSERT_LERNEINHEIT, eintraege)
 
     def lade_alle(self) -> list[Lerneinheit]:
         with self._conn() as conn:
-            rows = conn.execute(
-                "SELECT * FROM lerneinheit ORDER BY datum"
-            ).fetchall()
+            rows = conn.execute(queries.LADE_ALLE_LERNEINHEITEN).fetchall()
         return [
             Lerneinheit(datum=parse_date(r["datum"]), stunden=r["stunden"], notiz=r["notiz"])
             for r in rows
@@ -76,8 +65,7 @@ class LerneinheitRepository:
     def lade_nach_zeitraum(self, von: date, bis: date) -> list[Lerneinheit]:
         with self._conn() as conn:
             rows = conn.execute(
-                "SELECT * FROM lerneinheit WHERE datum >= ? AND datum <= ? ORDER BY datum",
-                (von.isoformat(), bis.isoformat()),
+                queries.LADE_LERNEINHEITEN_ZEITRAUM, (von.isoformat(), bis.isoformat())
             ).fetchall()
         return [
             Lerneinheit(datum=parse_date(r["datum"]), stunden=r["stunden"], notiz=r["notiz"])
@@ -87,6 +75,6 @@ class LerneinheitRepository:
     def speichere(self, einheit: Lerneinheit) -> None:
         with self._conn() as conn:
             conn.execute(
-                "INSERT INTO lerneinheit (datum, stunden, notiz) VALUES (?, ?, ?)",
+                queries.INSERT_LERNEINHEIT,
                 (einheit.datum.isoformat(), einheit.stunden, einheit.notiz),
             )
