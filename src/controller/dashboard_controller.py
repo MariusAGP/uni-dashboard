@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+from src.domain.lerneinheit import Lerneinheit
 from src.domain.modul_status_enum import ModulStatusEnum
+from src.domain.pruefungsleistung import Pruefungsleistung
 from src.dto.dashboard_daten import DashboardDaten
 from src.dto.offene_modul_info import OffeneModulInfo
 from src.repository.lerneinheit_repository import LerneinheitRepository
@@ -23,6 +25,16 @@ class DashboardController:
         self._lern_service = lern_service
         self._studiengang_repo = studiengang_repo
         self._lerneinheit_repo = lerneinheit_repo
+
+    def speichere_pruefung(
+        self, modul_name: str, note: float, datum: date, versuch: int
+    ) -> None:
+        pruefung = Pruefungsleistung(note=note, datum=datum, versuch=versuch)
+        self._studiengang_repo.speichere_pruefung(modul_name, pruefung)
+
+    def speichere_lerneinheit(self, datum: date, stunden: float, notiz: str) -> None:
+        einheit = Lerneinheit(datum=datum, stunden=stunden, notiz=notiz)
+        self._lerneinheit_repo.speichere(einheit)
 
     def lade_dashboard_daten(self) -> DashboardDaten:
         studiengang = self._studiengang_repo.lade_studiengang()

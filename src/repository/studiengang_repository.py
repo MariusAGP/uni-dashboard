@@ -177,8 +177,25 @@ class StudiengangRepository:
             semester=semester_liste,
         )
 
-    def speichere_modul(self, modul: Modul) -> None:
-        raise NotImplementedError
-
-    def speichere_pruefung(self, pruefung: Pruefungsleistung) -> None:
-        raise NotImplementedError
+    def speichere_pruefung(self, modul_name: str, pruefung: Pruefungsleistung) -> None:
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT id FROM modul WHERE name = ?", (modul_name,)
+            ).fetchone()
+            if row is None:
+                raise ValueError(f"Modul '{modul_name}' nicht gefunden.")
+            modul_id = row["id"]
+            if pruefung.note <= 4.0:
+                conn.execute(
+                    "UPDATE modul SET status = ? WHERE id = ?",
+                    (ModulStatusEnum.BESTANDEN.value, modul_id),
+                )
+            conn.execute(
+                """INSERT INTO pruefungsleistung (modul_id, note, datum, versuch)
+                   VALUES (?, ?, ?, ?)
+                   ON CONFLICT(modul_id) DO UPDATE SET
+                       note = excluded.note,
+                       datum = excluded.datum,
+                       versuch = excluded.versuch""",
+                (modul_id, pruefung.note, pruefung.datum.isoformat(), pruefung.versuch),
+            )

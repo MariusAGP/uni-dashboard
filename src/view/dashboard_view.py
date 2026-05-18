@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from datetime import date
+
 import pandas as pd
 import streamlit as st
 
@@ -138,3 +141,44 @@ class DashboardView:
                 f"**{modul.name}** — {modul.ects} ECTS "
                 f"*(Semester {modul.semester_nummer})*"
             )
+
+    def zeige_eingabe_sidebar(
+        self,
+        daten: DashboardDaten,
+        on_save_pruefung: Callable[[str, float, date, int], None],
+        on_save_lerneinheit: Callable[[date, float, str], None],
+    ) -> None:
+        with st.sidebar:
+            st.header("Eingabe")
+
+            with st.expander("Prüfung eintragen", expanded=True):
+                modul_namen = [m.name for m in daten.offene_module]
+                if not modul_namen:
+                    st.info("Alle Module bestanden.")
+                else:
+                    with st.form("pruefung_form"):
+                        modul = st.selectbox("Modul", modul_namen)
+                        note = st.selectbox(
+                            "Note",
+                            [1.0, 1.3, 1.7, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0, 5.0],
+                        )
+                        pruef_datum = st.date_input("Prüfungsdatum", value=date.today())
+                        versuch = st.number_input("Versuch", min_value=1, max_value=3, value=1, step=1)
+                        submitted = st.form_submit_button("Speichern")
+                        if submitted:
+                            on_save_pruefung(modul, float(note), pruef_datum, int(versuch))
+                            st.success(f'Note {note} für "{modul}" gespeichert.')
+                            st.rerun()
+
+            with st.expander("Lerneinheit eintragen", expanded=False):
+                with st.form("lerneinheit_form"):
+                    lern_datum = st.date_input("Datum", value=date.today(), key="lern_datum")
+                    stunden = st.number_input(
+                        "Stunden", min_value=0.5, max_value=12.0, value=2.0, step=0.5
+                    )
+                    notiz = st.text_input("Notiz (optional)", value="")
+                    submitted = st.form_submit_button("Speichern")
+                    if submitted:
+                        on_save_lerneinheit(lern_datum, float(stunden), notiz)
+                        st.success(f"{stunden} h am {lern_datum} gespeichert.")
+                        st.rerun()
