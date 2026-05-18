@@ -1,0 +1,43 @@
+[theme]
+base = "dark"
+
+# Farben
+primaryColor = "#06B6D4"
+backgroundColor = "#060810"
+secondaryBackgroundColor = "#0D1117"
+textColor = "#E2F0FF"
+
+# Akzentfarben
+redColor = "#F87171"
+orangeColor = "#FB923C"
+yellowColor = "#FBBF24"
+greenColor = "#34D399"
+blueColor = "#60A5FA"
+violetColor = "#A78BFA"
+
+# Typografie
+font = "sans serif"
+headingFont = "sans serif"
+baseFontSize = 16
+baseFontWeight = 400
+headingFontWeights = [700, 600, 600, 600, 600, 600]
+
+# Links
+linkColor = "#06B6D4"
+linkUnderline = false
+
+# Rahmen
+baseRadius = "8px"
+buttonRadius = "6px"
+borderColor = "#1E2D3D"
+showWidgetBorder = false
+showSidebarBorder = false
+
+# Code
+codeTextColor = "#67E8F9"
+codeBackgroundColor = "#0D1117"
+
+# Chart-Farben
+chartCategoricalColors = ["#06B6D4", "#0891B2", "#22D3EE", "#0E7490", "#67E8F9"]
+chartSequentialColors = ["#164E63", "#0E7490", "#0891B2", "#06B6D4", "#22D3EE", "#67E8F9", "#A5F3FC"]
+chartDivergingColors = ["#0E7490", "#0891B2", "#06B6D4", "#0D1117", "#22D3EE", "#67E8F9", "#A5F3FC"]
