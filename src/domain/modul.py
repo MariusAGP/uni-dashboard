@@ -17,3 +17,12 @@ class Modul:
 
     def ist_bestanden(self) -> bool:
         return self.status == ModulStatusEnum.BESTANDEN
+
+    def ist_offen(self) -> bool:
+        return self.status == ModulStatusEnum.OFFEN
+
+    def ist_laufend(self) -> bool:
+        return self.status == ModulStatusEnum.LAUFEND
+
+    def note(self) -> float | None:
+        return self.pruefung.note if self.pruefung else None

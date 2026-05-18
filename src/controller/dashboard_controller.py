@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 from src.domain.lerneinheit import Lerneinheit
-from src.domain.modul_status_enum import ModulStatusEnum
 from src.domain.pruefungsleistung import Pruefungsleistung
 from src.dto.dashboard_daten import DashboardDaten
 from src.dto.offene_modul_info import OffeneModulInfo
@@ -43,9 +42,7 @@ class DashboardController:
         von = bis - timedelta(weeks=8)
         lerneinheiten = self._lerneinheit_repo.lade_nach_zeitraum(von, bis)
 
-        alle_module = [m for sem in studiengang.semester for m in sem.module]
-
-        notendurchschnitt = self._studien_service.berechne_notendurchschnitt(alle_module)
+        notendurchschnitt = self._studien_service.berechne_notendurchschnitt(studiengang)
         ects_uebersicht = self._studien_service.berechne_ects_fortschritt(
             studiengang.semester,
             studiengang.gesamt_ects,
@@ -57,7 +54,7 @@ class DashboardController:
         wochen_stunden = self._lern_service.berechne_wochenstunden(lerneinheiten)
         lernstunden_durchschnitt = self._lern_service.berechne_durchschnitt(lerneinheiten)
 
-        ects_erreicht = sum(m.ects for m in alle_module if m.ist_bestanden())
+        ects_erreicht = sum(sem.ects_bestanden() for sem in studiengang.semester)
         aktuelles_semester = len(studiengang.semester)
         ects_soll_aktuell = (
             ects_uebersicht.soll_werte[-1] if ects_uebersicht.soll_werte else 0
@@ -68,9 +65,7 @@ class DashboardController:
 
         offene_module = [
             OffeneModulInfo(name=m.name, ects=m.ects, semester_nummer=sem.nummer)
-            for sem in studiengang.semester
-            for m in sem.module
-            if m.status in (ModulStatusEnum.OFFEN, ModulStatusEnum.LAUFEND)
+            for m, sem in studiengang.offene_module()
         ]
 
         return DashboardDaten(
