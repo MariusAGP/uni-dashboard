@@ -34,23 +34,11 @@ class DashboardView:
         self._zeige_dialoge(daten, on_save_pruefung, on_save_lerneinheit)
 
     def _zeige_header(self, daten: DashboardDaten) -> None:
-        col_titel, col_info, col_buttons = st.columns([3, 1, 1])
+        col_titel, col_rechts = st.columns([3, 1])
         with col_titel:
             st.title("Studium Dashboard")
             st.caption(f"{daten.studiengang_name}")
-        with col_info:
-            st.metric(
-                label="Semester",
-                value=f"{daten.aktuelles_semester} / {daten.gesamt_semester}",
-            )
-            fortschritt = daten.aktuelles_semester / daten.gesamt_semester
-            if fortschritt <= 0.5:
-                st.success("Im Zeitplan")
-            elif fortschritt <= 0.75:
-                st.warning("Zeitplan prüfen")
-            else:
-                st.error("Zeitplan kritisch")
-        with col_buttons:
+        with col_rechts:
             if st.button("Prüfung eintragen", use_container_width=True):
                 st.session_state["dialog_pruefung"] = True
             if st.button("Lerneinheit eintragen", use_container_width=True):
@@ -60,9 +48,18 @@ class DashboardView:
         k1, k2, k3, k4 = st.columns(4)
 
         with k1:
+            fortschritt = daten.aktuelles_semester / daten.gesamt_semester
+            if fortschritt <= 0.5:
+                status = "Im Zeitplan"
+            elif fortschritt <= 0.75:
+                status = "Zeitplan prüfen"
+            else:
+                status = "Zeitplan kritisch"
             st.metric(
                 label="Semester",
                 value=f"{daten.aktuelles_semester} / {daten.gesamt_semester}",
+                delta=status,
+                delta_color="off",
                 help="Aktuelles Semester / Regelstudienzeit",
             )
 
