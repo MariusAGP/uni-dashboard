@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from pathlib import Path
 
 from src.domain.lerneinheit import Lerneinheit
-
-
-def _parse_date(s: str) -> date:
-    return datetime.strptime(s, "%Y-%m-%d").date()
+from src.util.date_utils import parse_date
 
 
 class LerneinheitRepository:
@@ -66,13 +63,13 @@ class LerneinheitRepository:
             eintraege,
         )
 
-    def lade_alle(self, modul_id: int) -> list[Lerneinheit]:
+    def lade_alle(self) -> list[Lerneinheit]:
         with self._conn() as conn:
             rows = conn.execute(
                 "SELECT * FROM lerneinheit ORDER BY datum"
             ).fetchall()
         return [
-            Lerneinheit(datum=_parse_date(r["datum"]), stunden=r["stunden"], notiz=r["notiz"])
+            Lerneinheit(datum=parse_date(r["datum"]), stunden=r["stunden"], notiz=r["notiz"])
             for r in rows
         ]
 
@@ -83,7 +80,7 @@ class LerneinheitRepository:
                 (von.isoformat(), bis.isoformat()),
             ).fetchall()
         return [
-            Lerneinheit(datum=_parse_date(r["datum"]), stunden=r["stunden"], notiz=r["notiz"])
+            Lerneinheit(datum=parse_date(r["datum"]), stunden=r["stunden"], notiz=r["notiz"])
             for r in rows
         ]
 

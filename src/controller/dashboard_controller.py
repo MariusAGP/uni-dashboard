@@ -62,6 +62,9 @@ class DashboardController:
         ects_soll_aktuell = (
             ects_uebersicht.soll_werte[-1] if ects_uebersicht.soll_werte else 0
         )
+        zeitplan_status = self._studien_service.berechne_zeitplan_status(
+            ects_erreicht, ects_soll_aktuell
+        )
 
         offene_module = [
             OffeneModulInfo(name=m.name, ects=m.ects, semester_nummer=sem.nummer)
@@ -81,6 +84,7 @@ class DashboardController:
             ects_soll_aktuell=ects_soll_aktuell,
             lernstunden_durchschnitt=lernstunden_durchschnitt,
             ziel_lernstunden=20.0,
+            zeitplan_status=zeitplan_status,
             ects_pro_semester=ects_uebersicht,
             noten_pro_semester=noten_pro_semester,
             wochen_stunden=wochen_stunden,

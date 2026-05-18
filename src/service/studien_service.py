@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from src.domain.modul import Modul
-from src.domain.modul_status_enum import ModulStatusEnum
 from src.domain.semester import Semester
-from src.domain.studiengang import Studiengang
 from src.dto.ects_uebersicht import EctsUebersicht
 from src.dto.semester_note import SemesterNote
 
@@ -34,13 +32,6 @@ class StudienService:
             uebersicht.ist_werte.append(kumuliert_ist)
         return uebersicht
 
-    def berechne_gesamt_fortschritt(self, studiengang: Studiengang) -> float:
-        alle_module = [m for sem in studiengang.semester for m in sem.module]
-        bestanden_ects = sum(m.ects for m in alle_module if m.ist_bestanden())
-        if studiengang.gesamt_ects == 0:
-            return 0.0
-        return round(bestanden_ects / studiengang.gesamt_ects, 4)
-
     def berechne_semester_schnitt(self, semester: Semester) -> float:
         return self.berechne_notendurchschnitt(semester.module)
 
@@ -51,3 +42,13 @@ class StudienService:
             if schnitt > 0.0:
                 result.append(SemesterNote(semester_nummer=sem.nummer, durchschnitt=schnitt))
         return result
+
+    def berechne_zeitplan_status(self, ects_erreicht: int, ects_soll: int) -> str:
+        if ects_soll == 0:
+            return "Im Zeitplan"
+        abweichung = (ects_erreicht - ects_soll) / ects_soll
+        if abweichung >= -0.1:
+            return "Im Zeitplan"
+        if abweichung >= -0.25:
+            return "Zeitplan prüfen"
+        return "Zeitplan kritisch"

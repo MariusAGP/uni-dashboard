@@ -20,6 +20,7 @@ class DashboardDaten:
     ects_soll_aktuell: int
     lernstunden_durchschnitt: float
     ziel_lernstunden: float
+    zeitplan_status: str
     ects_pro_semester: EctsUebersicht
     noten_pro_semester: list[SemesterNote] = field(default_factory=list)
     wochen_stunden: list[WochenStunden] = field(default_factory=list)

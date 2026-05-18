@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 
 from src.domain.modul import Modul
@@ -9,10 +9,7 @@ from src.domain.modul_status_enum import ModulStatusEnum
 from src.domain.pruefungsleistung import Pruefungsleistung
 from src.domain.semester import Semester
 from src.domain.studiengang import Studiengang
-
-
-def _parse_date(s: str) -> date:
-    return datetime.strptime(s, "%Y-%m-%d").date()
+from src.util.date_utils import parse_date
 
 
 class StudiengangRepository:
@@ -151,7 +148,7 @@ class StudiengangRepository:
                     if pruefung_row:
                         pruefung = Pruefungsleistung(
                             note=pruefung_row["note"],
-                            datum=_parse_date(pruefung_row["datum"]),
+                            datum=parse_date(pruefung_row["datum"]),
                             versuch=pruefung_row["versuch"],
                         )
                     modul = Modul(
@@ -164,8 +161,8 @@ class StudiengangRepository:
 
                 semester = Semester(
                     nummer=sem_row["nummer"],
-                    start_datum=_parse_date(sem_row["start_datum"]),
-                    end_datum=_parse_date(sem_row["end_datum"]),
+                    start_datum=parse_date(sem_row["start_datum"]),
+                    end_datum=parse_date(sem_row["end_datum"]),
                     module=module,
                 )
                 semester_liste.append(semester)

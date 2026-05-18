@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import date, timedelta
 
 from src.domain.lerneinheit import Lerneinheit
 from src.dto.wochen_stunden import WochenStunden
@@ -26,9 +25,3 @@ class LernService:
             return 0.0
         gesamt = sum(w.stunden for w in wochen)
         return round(gesamt / len(wochen), 2)
-
-    def lade_lerneinheiten_letzte_wochen(
-        self, einheiten: list[Lerneinheit], wochen: int = 8
-    ) -> list[Lerneinheit]:
-        grenze = date.today() - timedelta(weeks=wochen)
-        return [e for e in einheiten if e.datum >= grenze]

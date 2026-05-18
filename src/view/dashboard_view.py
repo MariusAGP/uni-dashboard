@@ -48,20 +48,10 @@ class DashboardView:
         k1, k2, k3, k4 = st.columns(4)
 
         with k1:
-            if daten.ects_soll_aktuell > 0:
-                ects_abweichung = (daten.ects_erreicht - daten.ects_soll_aktuell) / daten.ects_soll_aktuell
-            else:
-                ects_abweichung = 0.0
-            if ects_abweichung >= -0.1:
-                status = "Im Zeitplan"
-            elif ects_abweichung >= -0.25:
-                status = "Zeitplan prüfen"
-            else:
-                status = "Zeitplan kritisch"
             st.metric(
                 label="Semester",
                 value=f"{daten.aktuelles_semester} / {daten.gesamt_semester}",
-                delta=status,
+                delta=daten.zeitplan_status,
                 delta_color="off",
                 help="Aktuelles Semester / Regelstudienzeit",
             )
